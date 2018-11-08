@@ -271,3 +271,14 @@ template <typename T>
 Parser<T> operator-(const Parser<T> &p) {
   return apply<T, T>([=](T x) { return -x; }, p);
 }
+
+template <typename T1, typename T2, typename T3>
+Parser<std::function<T1 (const T2 &)>> apply(
+  const std::function <T1 (const T2 &, const T3 &)> &f, const Parser<T2> &p) {
+  return [=](Source *s) {
+    T2 x = p(s);
+    return [=](const T3 &y) {
+      return f(x, y);
+    };
+  };
+}
