@@ -7,45 +7,37 @@ int toInt(const std::string &s) {
   return ret;
 }
 
-/*
-Parser<int> number = [](Source *s) {
-  return toInt(many1(digit)(s));
-};
-*/
-
 auto number = apply<int, std::string>(toInt, many1(digit));
 
-
-/*
-Parser<int> expr = [](Source *s) {
+Parser<int> term = [](Source *s) {
   int x = number(s);
   auto xs = many(
-        char1('+') >>  number
-    ||  char1('-') >> -number
-  )(s);
-  return std::accumulate(xs.begin(), xs.end(), x);
-};
-*/
-
-Parser<int> expr = [](Source *s) {
-  int x = number(s);
-  auto xs = many(
-    Parser<std::function<int (int)>>([](Source *s) {// 型を修正
-      char1('+')(s); 
-      int x = number(s);                            // キャプチャされる変数
-      return [=](int y) { return y + x; };          // クロージャを返す
+    Parser<std::function<int (int)>>([](Source *s) {
+      char1('*')(s);
+      int x = number(s);
+      return [=](int y) { return y * x; };
     }) || Parser<std::function<int (int)>>([](Source *s) {
-      char1('-')(s); 
-      int x = number(s);                            // キャプチャされる変数
-      return [=](int y) { return y - x; };          // クロージャを返す
-    }) || Parser<std::function<int (int)>>([](Source *s) { // 追加: 掛け算
-      char1('*')(s); 
-      int x = number(s);                            // キャプチャされる変数
-      return [=](int y) { return y * x; };          // クロージャを返す
-    }) || Parser<std::function<int (int)>>([](Source *s) { // 追加: 割り算
-      char1('/')(s); 
-      int x = number(s);                            // キャプチャされる変数
-      return [=](int y) { return y / x; };          // クロージャを返す
+      char1('/')(s);
+      int x = number(s);
+      return [=](int y) { return y / x; };
+    })
+  )(s);
+  return std::accumulate(xs.begin(), xs.end(), x,
+    [](int x, const std::function<int (int)> &f) { return f(x); });
+};
+
+
+Parser<int> expr = [](Source *s) {
+  int x = term(s);                                   // 項を取得
+  auto xs = many(
+    Parser<std::function<int (int)>>([](Source *s) {
+      char1('+')(s);
+      int x = term(s);                               // 項を取得
+      return [=](int y) { return y + x; };
+    }) || Parser<std::function<int (int)>>([](Source *s) {
+      char1('-')(s);
+      int x = term(s);                               // 項を取得
+      return [=](int y) { return y - x; };
     })
   )(s);
   return std::accumulate(xs.begin(), xs.end(), x,
