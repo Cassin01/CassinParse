@@ -46,11 +46,14 @@ Parser<int> expr = [](Source *s) {
     [](int x, const std::function<int (int)> &f) { return f(x); });
 };
 */
+
+// term = number, {("*", number) | ("/", number)}
 auto term = eval(number, many(
      char1('*') >> apply([](int x, int y) { return y * x; }, number)
   || char1('/') >> apply([](int x, int y) { return y / x; }, number)
 ));
 
+// expr = term, {("+", term) | ("-", term)}
 auto expr = eval(term, many(
      char1('+') >> apply([](int x, int y) { return y + x; }, term)
   || char1('-') >> apply([](int x, int y) { return y - x; }, term)
