@@ -2,7 +2,27 @@
 #include <string>
 #include <functional>
 
-using Source = const char *;
+//using Source = const char *;
+class Source {
+  const char *s;
+  public:
+    Source(const char *s) : s(s) {}
+    char peek() {
+      char ch = *s;
+      if (!ch) throw "too short";
+      return ch;
+    }
+    void next() {
+      peek();
+      ++s;
+    }
+    bool operator==(const Source &src) const {
+      return s == src.s;
+    }
+    bool operator!=(const Source &src) const {
+      return !(*this == src);
+    }
+};
 
 template <typename T>
 using Parser  = std::function<T (Source *)>;
@@ -21,10 +41,12 @@ void parseTest(const Parser<T> &p, const Source &src) {
 
 Parser<char> satisfy(const std::function<bool (char)> &f) {
   return [=](Source *s) {
-    char ch = **s;
-    if (!ch) throw "too short";
+    //char ch = **s;
+    //if (!ch) throw "too short";
+    char ch = s -> peek();
     if (!f(ch)) throw "not satisfy";
-    ++*s;
+    //++*s;
+    s -> next();
     return ch;
   };
 }
