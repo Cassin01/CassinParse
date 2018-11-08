@@ -29,6 +29,7 @@ class Source {
     std::string ex(const std::string &e) {
       std::ostringstream oss;
       oss << "[line " << line << ", col" << col << "] " << e;
+      if (*s) oss << ": '" << *s << "'";
       return oss.str();
     }
 
