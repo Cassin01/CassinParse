@@ -1,21 +1,37 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <functional>
 
 //using Source = const char *;
 class Source {
   const char *s;
+  int line, col;
   public:
-    Source(const char *s) : s(s) {}
+    //Source(const char *s) : s(s) {}
+    Source(const char *s) : s(s), line(1), col(1) {}
     char peek() {
       char ch = *s;
-      if (!ch) throw "too short";
+      //if (!ch) throw "too short";
+      if (!ch) throw ex("too short");
       return ch;
     }
     void next() {
-      peek();
+      //peek();
+      char ch = peek();
+      if (ch == '\n') {
+        ++line;
+        col = 0;
+      }
       ++s;
+      ++col;
     }
+    std::string ex(const std::string &e) {
+      std::ostringstream oss;
+      oss << "[line " << line << ", col" << col << "] " << e;
+      return oss.str();
+    }
+
     bool operator==(const Source &src) const {
       return s == src.s;
     }
@@ -33,7 +49,8 @@ void parseTest(const Parser<T> &p, const Source &src) {
   Source s = src;
   try {
     std::cout << p(&s) << std::endl;
-  } catch (const char *e) {
+  //} catch (const char *e) {
+  } catch (const std::string &e) {
     std::cout << e << std::endl;
   }
 }
@@ -44,7 +61,8 @@ Parser<char> satisfy(const std::function<bool (char)> &f) {
     //char ch = **s;
     //if (!ch) throw "too short";
     char ch = s -> peek();
-    if (!f(ch)) throw "not satisfy";
+    //if (!f(ch)) throw "not satisfy";
+    if (!f(ch)) throw s -> ex("not satisfy");
     //++*s;
     s -> next();
     return ch;
@@ -103,7 +121,8 @@ Parser<std::string> many(const Parser<T> &p) {
     std::string ret;
     try {
       for (;;) ret += p(s);
-    } catch (const char *) {}
+    //} catch (const char *) {}
+    } catch (const std::string &) {}
     return ret;
   };
 }
@@ -115,7 +134,8 @@ const Parser<T> operator||(const Parser<T> &p1, const Parser<T> &p2) {
     Source bak = *s;
     try {
       ret = p1(s);
-    } catch (const char *) {
+    //} catch (const char *) {
+    } catch (const std::string &) {
       if (*s != bak) throw;
       ret = p2(s);
     }
@@ -130,7 +150,8 @@ Parser<T> tryp(const Parser<T> &p) {
     Source bak = *s;
     try {
       ret = p(s);
-    } catch (const char *) {
+    //} catch (const char *) {
+    } catch (const std::string &) {
       *s = bak;
       throw;
     }
