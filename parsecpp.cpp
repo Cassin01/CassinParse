@@ -266,3 +266,8 @@ Parser<T1> apply(const std::function <T1 (const T2 &)> &f, const Parser<T2> &p) 
     return f(p(s));
   };
 }
+
+template <typename T>
+Parser<T> operator-(const Parser<T> &p) {
+  return apply<T, T>([=](T x) { return -x; }, p);
+}
