@@ -73,6 +73,7 @@ Parser<char> satisfy(const std::function<bool (char)> &f) {
 // satisfy より低く
 auto anyChar = satisfy([](char) { return true; });
 
+/*
 Parser<char> char1(char ch) {
   return satisfy([=](char c) { return c == ch; });
 }
@@ -90,6 +91,7 @@ auto lower    = satisfy(isLower   );
 auto alpha    = satisfy(isAlpha   );
 auto alphaNum = satisfy(isAlphaNum);
 auto letter   = satisfy(isLetter  );
+*/
 
 template <typename T1, typename T2>
 Parser<std::string> operator+(const Parser<T1> &x, const Parser<T2> &y) {
@@ -160,11 +162,41 @@ Parser<T> tryp(const Parser<T> &p) {
   };
 }
 
+template <typename T>
+Parser<T> left(const std::string &e) {
+  return [=](Source *s) -> T {
+    throw s ->ex(e);
+  };
+}
+Parser<char> left(const std::string &e) {
+  return left<char>(e);
+}
+
+Parser<char> char1(char ch) {
+  return satisfy([=](char c) { return c == ch; })
+    || left(std::string("not char '") + ch + "'");
+}
+
 Parser<std::string> string(const std::string &str) {
   return [=](Source *s) {
     for (auto it = str.begin(); it != str.end(); ++it) {
-      char1(*it)(s);
+      //char1(*it)(s);
+      (char1(*it) || left("not string \"" + str + "\""))(s);
     }
     return str;
   };
 }
+
+bool isDigit   (char ch) { return '0' <= ch && ch <= '9'; }
+bool isUpper   (char ch) { return 'A' <= ch && ch <= 'Z'; }
+bool isLower   (char ch) { return 'a' <= ch && ch <= 'z'; }
+bool isAlpha   (char ch) { return isUpper(ch) || isLower(ch); }
+bool isAlphaNum(char ch) { return isAlpha(ch) || isDigit(ch); }
+bool isLetter  (char ch) { return isAlpha(ch) || ch == '_';   }
+
+auto digit    = satisfy(isDigit   ) || left("not digit   ");
+auto upper    = satisfy(isUpper   ) || left("not upper   ");
+auto lower    = satisfy(isLower   ) || left("not lower   ");
+auto alpha    = satisfy(isAlpha   ) || left("not alpha   ");
+auto alphaNum = satisfy(isAlphaNum) || left("not alphaNum");
+auto letter   = satisfy(isLetter  ) || left("not letter  ");
