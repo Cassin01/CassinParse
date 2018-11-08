@@ -2,6 +2,24 @@
 #include <sstream>
 #include <string>
 #include <functional>
+#include <list>
+
+// リストの表示
+template <typename T>
+std::string toString(const std::list<T> &list) {
+  std::stringstream ss;
+  ss << "[";
+  for (auto it = list.begin(); it != list.end(); ++it) {
+    if (it != list.begin()) ss << ",";
+    ss << *it;
+  }
+  ss << "]";
+  return ss.str();
+}
+template <typename T>
+std::ostream &operator<<(std::ostream &cout, const std::list<T> &list) {
+  return cout << toString(list);
+}
 
 //using Source = const char *;
 class Source {
@@ -200,3 +218,10 @@ auto lower    = satisfy(isLower   ) || left("not lower   ");
 auto alpha    = satisfy(isAlpha   ) || left("not alpha   ");
 auto alphaNum = satisfy(isAlphaNum) || left("not alphaNum");
 auto letter   = satisfy(isLetter  ) || left("not letter  ");
+
+// 数字を読み込むパーサ最低１文字必要
+template <typename T>
+Parser<std::string> many1(const Parser<T> &p) {
+  return p + many(p);
+}
+
