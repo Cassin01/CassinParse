@@ -137,12 +137,29 @@ Parser<std::string> operator*(const Parser<T> &x, int n) {
 }
 
 template <typename T>
-Parser<std::string> many(const Parser<T> &p) {
+//Parser<std::string> many(const Parser<T> &p) {
+Parser<std::string> many_(const Parser<T> &p) {
   return [=](Source *s) {
     std::string ret;
     try {
       for (;;) ret += p(s);
     //} catch (const char *) {}
+    } catch (const std::string &) {}
+    return ret;
+  };
+}
+Parser<std::string> many(const Parser<char> &p) {
+  return many_(p);
+}
+Parser<std::string> many(const Parser<std::string> &p) {
+  return many_(p);
+}
+template<typename T>
+Parser<std::list<T>> many(const Parser<T> &p) {
+  return [=](Source *s) {
+    std::list<T> ret;
+    try {
+      for (;;) ret.push_back(p(s));
     } catch (const std::string &) {}
     return ret;
   };
