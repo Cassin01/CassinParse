@@ -29,9 +29,9 @@ extern Parser<int> factor_; // 前方宣言
 Parser<int> factor = [](Source *s) { return factor_(s); }; // ダミーのラッパー
 
 // term = number, {("*", number) | ("/", number)}
-auto term = eval(number, many(
-     char1('*') >> apply([](int x, int y) { return y * x; }, number)
-  || char1('/') >> apply([](int x, int y) { return y / x; }, number)
+auto term = eval(factor, many(
+     char1('*') >> apply([](int x, int y) { return y * x; }, factor)
+  || char1('/') >> apply([](int x, int y) { return y / x; }, factor)
 ));
 
 // expr = term, {("+", term) | ("-", term)}
@@ -45,8 +45,8 @@ auto expr = eval(term, many(
 
 // factor = factor = [spaces], ("(", expr, ")") | number, [spaces]
 Parser<int> factor_ = spaces
-                      >> (char1('(') >> expr << char1(')') || number)
-                      << spaces;
+                   >> (char1('(') >> expr << char1(')') || number)
+                   << spaces;
 
 int main() {
   parseTest(number, "123");
@@ -57,6 +57,6 @@ int main() {
   parseTest(expr,   "1-2+3");
   parseTest(expr,   "2*3+4"); //
   parseTest(expr,   "2+3*4");
-  parseTest(expr,   "100/10/2");
+  parseTest(expr,   "100 / 10 / 2");
   parseTest(expr,   "(2+3)*4");
 }
