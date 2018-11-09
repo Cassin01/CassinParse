@@ -25,17 +25,15 @@ Parser<std::function<int (int)>> apply( // 特殊化
 
 auto number = apply<int, std::string>(toInt, many1(digit));
 
-/*
-Parser<int> term = [](Source *s) {
-  int x = number(s);
-  auto xs = many(
-       char1('*') >> apply([](int x, int y) { return y * x; }, number)
-    || char1('/') >> apply([](int x, int y) { return y / x; }, number)
-  )(s);
-  return std::accumulate(xs.begin(), xs.end(), x,
-    [](int x, const std::function<int (int)> &f) { return f(x); });
-};
+extern Parser<int> factor_; // 前方宣言
+Parser<int> factor = [](Source *s) { return factor_(s); }; // ダミーのラッパー
 
+<<<<<<< HEAD
+// term = factor, {("*", factor) | ("/", factor)}
+auto term = eval(factor, many(
+     char1('*') >> apply([](int x, int y) { return y * x; }, factor)
+  || char1('/') >> apply([](int x, int y) { return y / x; }, factor)
+=======
 Parser<int> expr = [](Source *s) {
   int x = term(s);
   auto xs = many(
@@ -51,6 +49,7 @@ Parser<int> expr = [](Source *s) {
 auto term = eval(number, many(
      char1('*') >> apply([](int x, int y) { return y * x; }, number)
   || char1('/') >> apply([](int x, int y) { return y / x; }, number)
+>>>>>>> c0ac2688f94a283049d0c7ee1a281cd776fe3991
 ));
 
 // expr = term, {("+", term) | ("-", term)}
@@ -59,6 +58,13 @@ auto expr = eval(term, many(
   || char1('-') >> apply([](int x, int y) { return y - x; }, term)
 ));
 
+// factor = ("(", expr, ")" | number
+//Parser<int> factor_ = char1('(') >> expr << char1(')') || number; // 実体
+
+// factor = factor = [spaces], ("(", expr, ")") | number, [spaces]
+Parser<int> factor_ = spaces
+                      >> (char1('(') >> expr << char1(')') || number)
+                      << spaces;
 
 int main() {
   parseTest(number, "123");
@@ -70,4 +76,5 @@ int main() {
   parseTest(expr,   "2*3+4"); //
   parseTest(expr,   "2+3*4");
   parseTest(expr,   "100/10/2");
+  parseTest(expr,   "(2+3)*4");
 }

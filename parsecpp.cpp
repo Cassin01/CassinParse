@@ -1,4 +1,4 @@
-#include <iostream>
+# include <iostream>
 #include <sstream>
 #include <string>
 #include <functional>
@@ -282,3 +282,7 @@ Parser<std::function<T1 (const T2 &)>> apply(
     };
   };
 }
+
+bool isSpace(char ch) { return ch == '\t' || ch == ' '; }
+auto space  = satisfy(isSpace) || left("not space");
+auto spaces = many(space);
