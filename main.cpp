@@ -28,28 +28,10 @@ auto number = apply<int, std::string>(toInt, many1(digit));
 extern Parser<int> factor_; // 前方宣言
 Parser<int> factor = [](Source *s) { return factor_(s); }; // ダミーのラッパー
 
-<<<<<<< HEAD
-// term = factor, {("*", factor) | ("/", factor)}
-auto term = eval(factor, many(
-     char1('*') >> apply([](int x, int y) { return y * x; }, factor)
-  || char1('/') >> apply([](int x, int y) { return y / x; }, factor)
-=======
-Parser<int> expr = [](Source *s) {
-  int x = term(s);
-  auto xs = many(
-       char1('+') >> apply([](int x, int y) { return y + x; }, term)
-    || char1('-') >> apply([](int x, int y) { return y - x; }, term)
-  )(s);
-  return std::accumulate(xs.begin(), xs.end(), x,
-    [](int x, const std::function<int (int)> &f) { return f(x); });
-};
-*/
-
 // term = number, {("*", number) | ("/", number)}
 auto term = eval(number, many(
      char1('*') >> apply([](int x, int y) { return y * x; }, number)
   || char1('/') >> apply([](int x, int y) { return y / x; }, number)
->>>>>>> c0ac2688f94a283049d0c7ee1a281cd776fe3991
 ));
 
 // expr = term, {("+", term) | ("-", term)}
